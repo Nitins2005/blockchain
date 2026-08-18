@@ -1,0 +1,29 @@
+from pydantic import BaseModel, EmailStr
+from typing import Optional
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    username: str
+    full_name: str
+    password: str
+    role: str = "investigator"
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: dict
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
