@@ -8,16 +8,16 @@ Powered by a Temporal Explainable Multi-Chain Graph Neural Network.
 
 ## ✨ Features
 
-- 🔍 **Fraud Detection** — Analyze wallet behavior and score fraud risk 0–100%
-- 🏷️ **Wallet Attribution** — Classify wallets (Exchange, Mixer, Scam, DeFi, etc.)
-- 🧠 **Explainable AI** — GNN feature importance, temporal activity, risk reasoning
-- 📊 **Analytics Dashboard** — Real-time fraud trends, volume charts, distributions
-- 🕸️ **Graph Visualization** — Interactive Cytoscape.js transaction network
-- ⛓️ **Multi-Chain** — Bitcoin, Ethereum, BNB Chain, Polygon, Tron
-- 🗂️ **Investigation Module** — Case management, notes, PDF reports
-- 🚫 **Blacklist Management** — CRUD for scam wallets, mixers, exchanges
-- 🔔 **Notifications** — Real-time alerts for fraud detection events
-- 👥 **Role-Based Access** — Admin and Investigator roles with JWT auth
+1. 🔍 **Fraud Detection** — Analyze wallet behavior and score fraud risk 0–100%
+2. 🏷️ **Wallet Attribution** — Classify wallets (Exchange, Mixer, Scam, DeFi, etc.)
+3. 🧠 **Explainable AI** — GNN feature importance, temporal activity, risk reasoning
+4. 📊 **Analytics Dashboard** — Real-time fraud trends, volume charts, distributions
+5. 🕸️ **Graph Visualization** — Interactive Cytoscape.js transaction network
+6. ⛓️ **Multi-Chain** — Bitcoin, Ethereum, BNB Chain, Polygon, Tron
+7. 🗂️ **Investigation Module** — Case management, notes, PDF reports
+8. 🚫 **Blacklist Management** — CRUD for scam wallets, mixers, exchanges
+9. 🔔 **Notifications** — Real-time alerts for fraud detection events
+10. 👥 **Role-Based Access** — Admin and Investigator roles with JWT auth
 
 ---
 
@@ -31,18 +31,18 @@ docker-compose up --build
 ```
 
 Then open:
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **Swagger Docs**: http://localhost:8000/docs
-- **Neo4j Browser**: http://localhost:7474
+1. **Frontend**: http://localhost:5173
+2. **Backend API**: http://localhost:8000
+3. **Swagger Docs**: http://localhost:8000/docs
+4. **Neo4j Browser**: http://localhost:7474
 
 ### Option B: Local Development
 
 #### Prerequisites
-- Python 3.11+
-- Node.js 20+
-- PostgreSQL 16 (or use Docker for DB only)
-- Neo4j 5.x (optional — falls back to mock mode)
+1. Python 3.11+
+2. Node.js 20+
+3. PostgreSQL 16 (or use Docker for DB only)
+4. Neo4j 5.x (optional — falls back to mock mode)
 
 #### Start Databases Only (Docker)
 ```bash
@@ -160,18 +160,18 @@ Prediction REST API → Dashboard
 ## 🗄️ Database Schema
 
 ### PostgreSQL Tables
-- `users` — Authentication and roles
-- `wallets` — Wallet metadata and risk scores
-- `transactions` — Transaction records (multi-chain)
-- `wallet_features` — Engineered graph features
-- `predictions` — Fraud prediction history
-- `wallet_categories` — Attribution predictions
-- `investigations` — Case management
-- `investigation_wallets` — Case-wallet relationships
-- `investigation_notes` — Case notes
-- `blacklist` — Blacklisted wallets
-- `notifications` — User notifications
-- `blockchain_configs` — API configurations
+1. `users` — Authentication and roles
+2. `wallets` — Wallet metadata and risk scores
+3. `transactions` — Transaction records (multi-chain)
+4. `wallet_features` — Engineered graph features
+5. `predictions` — Fraud prediction history
+6. `wallet_categories` — Attribution predictions
+7. `investigations` — Case management
+8. `investigation_wallets` — Case-wallet relationships
+9. `investigation_notes` — Case notes
+10. `blacklist` — Blacklisted wallets
+11. `notifications` — User notifications
+12. `blockchain_configs` — API configurations
 
 ### Neo4j Graph
 ```cypher

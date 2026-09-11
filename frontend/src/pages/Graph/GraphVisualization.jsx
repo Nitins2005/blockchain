@@ -38,8 +38,23 @@ export default function GraphVisualization() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // Load initial demo graph
     setGraphData(MOCK_GRAPH)
+    const fetchStats = async () => {
+      try {
+        const res = await graphAPI.getStats()
+        if (res.data) {
+          setStats({
+            nodes: res.data.node_count ?? res.data.nodes ?? MOCK_STATS.nodes,
+            edges: res.data.edge_count ?? res.data.edges ?? MOCK_STATS.edges,
+            components: res.data.components ?? MOCK_STATS.components,
+            density: res.data.graph_density ?? res.data.density ?? MOCK_STATS.density,
+          })
+        }
+      } catch {
+        // keep MOCK_STATS
+      }
+    }
+    fetchStats()
   }, [])
 
   const handleSearch = async (e) => {
@@ -48,19 +63,20 @@ export default function GraphVisualization() {
     
     setLoading(true)
     try {
-      if (graphAPI && graphAPI.getWalletGraph) {
-        const res = await graphAPI.getWalletGraph(searchAddress)
+      const res = await graphAPI.getWalletGraph(searchAddress)
+      if (res.data && res.data.nodes && res.data.nodes.length > 0) {
         setGraphData(res.data)
       } else {
-        throw new Error('API not available')
+        setGraphData(MOCK_GRAPH)
       }
     } catch {
-      // Simulate new mock data for search
       setTimeout(() => {
         setGraphData(MOCK_GRAPH)
         setLoading(false)
       }, 1000)
+      return
     }
+    setLoading(false)
   }
 
   return (

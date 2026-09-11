@@ -58,10 +58,9 @@ export default function ExplainableAI() {
         throw new Error('API not available')
       }
     } catch {
-      setTimeout(() => {
-        setExplanation({ ...MOCK_EXPLANATION, address })
-        setLoading(false)
-      }, 1200)
+      setExplanation({ ...MOCK_EXPLANATION, address })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -134,14 +133,14 @@ export default function ExplainableAI() {
               </button>
               {activePanels.factors && (
                 <div className="p-6 bg-dark-300">
-                  <ul className="space-y-3">
+                  <ol className="space-y-3 list-none">
                     {explanation.risk_factors.map((factor, i) => (
                       <li key={i} className="flex items-start gap-3 text-white/80">
-                        <AlertTriangle size={16} className="text-red-500/70 mt-0.5 flex-shrink-0" />
+                        <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-red-500/20 text-red-400 text-xs font-bold">{i + 1}</span>
                         <span>{factor}</span>
                       </li>
                     ))}
-                  </ul>
+                  </ol>
                 </div>
               )}
             </div>

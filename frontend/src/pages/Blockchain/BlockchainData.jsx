@@ -28,7 +28,19 @@ export default function BlockchainData() {
     try {
       if (blockchainAPI && blockchainAPI.getConfigs) {
         const res = await blockchainAPI.getConfigs()
-        setConfigs(res.data)
+        const mapped = (res.data || []).map(c => ({
+          chain: c.blockchain || c.chain,
+          name: c.display_name || c.name || c.blockchain,
+          url: c.api_url || c.url || '',
+          key: c.api_key || c.key || '',
+          enabled: c.is_enabled ?? c.enabled ?? true,
+          lastSync: c.last_sync || c.lastSync,
+          txCount: c.tx_count ?? c.txCount ?? 0,
+          wallets: c.wallet_count ?? c.wallets ?? 0,
+          blockHeight: c.block_height ?? c.blockHeight ?? 0,
+          status: c.sync_status || c.status || 'idle'
+        }))
+        setConfigs(mapped)
       } else {
         throw new Error('API not available')
       }

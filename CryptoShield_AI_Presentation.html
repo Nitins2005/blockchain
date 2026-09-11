@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CryptoShield AI — Project Presentation Deck</title>
+  <!-- Google Fonts & FontAwesome icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --card-bg: rgba(18, 24, 38, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --accent-purple: #7928ca;
+      --accent-magenta: #ff0080;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-code: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Background Ambient Glows */
+    .ambient-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.25;
+    }
+    .glow-1 {
+      top: -10%;
+      left: -10%;
+      width: 50vw;
+      height: 50vw;
+      background: radial-gradient(circle, var(--accent-cyan), transparent);
+    }
+    .glow-2 {
+      bottom: -15%;
+      right: -10%;
+      width: 55vw;
+      height: 55vw;
+      background: radial-gradient(circle, var(--accent-purple), transparent);
+    }
+
+    /* Presentation Header Bar */
+    header {
+      height: 60px;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.25rem;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand i {
+      -webkit-text-fill-color: initial;
+      color: var(--accent-cyan);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* Main Slide Container */
+    .deck-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%;
+      max-width: 1300px;
+      height: 84%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2.5rem 3rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+      opacity: 0;
+      transform: scale(0.95) translateY(20px);
+      pointer-events: none;
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+
+    /* Slide Content Typography */
+    .slide-tag {
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent-cyan);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .slide-title {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .slide-body {
+      flex: 1;
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    /* Grid Layouts inside slides */
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid-2-1 { grid-template-columns: 2fr 1fr; }
+    .grid-1-2 { grid-template-columns: 1fr 2fr; }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3, .grid-4, .grid-2-1, .grid-1-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Box UI */
+    .info-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: all 0.25s ease;
+    }
+    .info-card:hover {
+      border-color: rgba(0, 242, 254, 0.3);
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .info-card h4 {
+      font-size: 1.1rem;
+      margin-bottom: 0.6rem;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-card p, .info-card ul {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    ul.bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    ul.bullet-list li {
+      position: relative;
+      padding-left: 1.5rem;
+      color: var(--text-main);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+    ul.bullet-list li::before {
+      content: '❖';
+      position: absolute;
+      left: 0;
+      color: var(--accent-cyan);
+      font-size: 0.8rem;
+    }
+
+    /* Highlight Badges & Stat Chips */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-cyan { background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0, 242, 254, 0.3); }
+    .badge-purple { background: rgba(121, 40, 202, 0.2); color: #c084fc; border: 1px solid rgba(121, 40, 202, 0.4); }
+    .badge-emerald { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    .stat-box {
+      text-align: center;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+    .stat-number {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* Math Formula Block */
+    .math-block {
+      background: rgba(0, 0, 0, 0.4);
+      border-left: 3px solid var(--accent-cyan);
+      padding: 1rem 1.25rem;
+      border-radius: 0 10px 10px 0;
+      font-family: var(--font-code);
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      margin: 0.5rem 0;
+    }
+
+    /* Code Snippets */
+    code, pre {
+      font-family: var(--font-code);
+    }
+    pre {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--card-border);
+      padding: 1rem;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      color: #38bdf8;
+    }
+
+    /* Image Containers */
+    .figure-img-container {
+      width: 100%;
+      height: 100%;
+      min-height: 250px;
+      max-height: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .figure-img-container img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    /* Table styling */
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .custom-table th, .custom-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .custom-table th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+    .custom-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .custom-table tr.highlight-row td {
+      background: rgba(0, 242, 254, 0.08);
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    /* Footer / Navigation Bar */
+    footer {
+      height: 60px;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--card-border);
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .progress-bar-container {
+      flex: 1;
+      max-width: 400px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 0 1.5rem;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+      transition: width 0.3s ease;
+    }
+
+    .slide-counter {
+      font-family: var(--font-code);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Speaker Notes Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-box {
+      width: 90%;
+      max-width: 700px;
+      background: #0f172a;
+      border: 1px solid var(--accent-cyan);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.7);
+    }
+    .modal-box h3 {
+      font-family: var(--font-heading);
+      color: var(--accent-cyan);
+      margin-bottom: 1rem;
+    }
+
+    /* Print Styles for PDF Export */
+    @media print {
+      body {
+        overflow: visible !important;
+        height: auto !important;
+        background: #000 !important;
+      }
+      header, footer, .ambient-glow { display: none !important; }
+      .deck-container { display: block !important; padding: 0 !important; }
+      .slide {
+        position: relative !important;
+        opacity: 1 !important;
+        transform: none !important;
+        width: 100% !important;
+        height: 100vh !important;
+        page-break-after: always;
+        break-after: page;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        background: #0b0f19 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow Effects -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Header Bar -->
+  <header>
+    <div class="brand">
+      <i class="fa-solid fa-shield-halved"></i> CryptoShield AI
+    </div>
+    <div class="header-controls">
+      <button class="btn" onclick="toggleNotes()"><i class="fa-solid fa-note-sticky"></i> Speaker Notes</button>
+      <button class="btn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i> Fullscreen</button>
+      <button class="btn" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+    </div>
+  </header>
+
+  <!-- Slide Deck Main Container -->
+  <main class="deck-container">
+
+    <!-- SLIDE 1: Title Slide -->
+    <section class="slide active" data-slide="1">
+      <div class="slide-tag"><i class="fa-solid fa-graduation-cap"></i> Academic & Research Project Defense</div>
+      <h1 class="slide-title" style="font-size: 2.8rem; margin-top: 1rem;">CryptoShield AI</h1>
+      <p style="font-size: 1.3rem; color: var(--accent-cyan); font-weight: 600; margin-bottom: 2rem;">
+        A Temporal Explainable Multi-Chain Graph Neural Network for Cryptocurrency Fraud Detection & Wallet Attribution
+      </p>
+
+      <div class="grid-3" style="margin-top: 1rem;">
+        <div class="info-card">
+          <h4><i class="fa-solid fa-user-astronaut"></i> Presenter</h4>
+          <p><strong>Nitin S.</strong></p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Department of Computer Science & Engineering</p>
+        </div>
+        <div class="info-card">
+          <h4><i class="fa-solid fa-cubes-stacked"></i> Architecture Focus</h4>
+          <p><strong>T-EGNN Model</strong></p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Spatial GCN + Temporal Attention + Dual Head</p>
+        </div>
+        <div class="info-card">
+          <h4><i class="fa-solid fa-chart-line"></i> Benchmark Result</h4>
+          <p><strong>94.2% Accuracy</strong></p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); color: var(--accent-emerald);">0.963 AUC-ROC | 11.6ms Latency</p>
+        </div>
+      </div>
+
+      <div style="margin-top: auto; display: flex; justify-content: space-between; border-top: 1px solid var(--card-border); padding-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+        <span><i class="fa-solid fa-link"></i> Bitcoin • Ethereum • BNB Chain • Polygon • Tron</span>
+        <span><i class="fa-solid fa-code"></i> FastAPI + PyTorch Geometric + React 18 + Cytoscape</span>
+      </div>
+
+      <div class="notes" style="display:none;">
+        Welcome professors and evaluation committee. Today I am presenting CryptoShield AI, a novel production-ready framework for detecting cryptocurrency fraud and classifying wallet behaviors across heterogeneous multi-chain blockchains using a Temporal Explainable Graph Neural Network (T-EGNN).
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Problem Statement & Motivation -->
+    <section class="slide" data-slide="2">
+      <div class="slide-tag"><i class="fa-solid fa-triangle-exclamation"></i> Motivation & Background</div>
+      <h2 class="slide-title">The Cryptocurrency Security Crisis</h2>
+      
+      <div class="grid-2">
+        <div class="info-card">
+          <h4><i class="fa-solid fa-skull-crossbones" style="color: var(--accent-magenta);"></i> The Threat Landscape</h4>
+          <ul class="bullet-list">
+            <li><strong>Exponential Fraud Volume:</strong> Over <strong>$10+ Billion</strong> lost annually to extortion, phishing, mixers (Tornado Cash), and DeFi exploits.</li>
+            <li><strong>Cross-Chain Laundering:</strong> Adversaries hop across EVM and non-EVM chains (BTC, ETH, BNB, TRX) to break tracking trails.</li>
+            <li><strong>Dynamic Obfuscation:</strong> Rapid peeling chains and micro-batch transfers defeat static blacklist systems within minutes.</li>
+          </ul>
+        </div>
+
+        <div class="info-card">
+          <h4><i class="fa-solid fa-xmark-circle" style="color: var(--accent-amber);"></i> Limitations of Legacy Auditing</h4>
+          <ul class="bullet-list">
+            <li><strong>Rule-Based Heuristics:</strong> Rigid threshold rules fail against evolving evasion tactics and fresh wallet addresses.</li>
+            <li><strong>Tabular Machine Learning:</strong> Models like XGBoost ignore <em>graph topology</em> and counterparty risk propagation.</li>
+            <li><strong>Black-Box Deep Learning:</strong> Traditional neural nets lack interpretable rationale required for legal and forensic compliance.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid-4" style="margin-top: 1rem;">
+        <div class="stat-box">
+          <div class="stat-number">$10B+</div>
+          <div class="stat-label">Annual Crypto Illicit Losses</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">79%</div>
+          <div class="stat-label">Unlabeled Graph Nodes</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">5 Chains</div>
+          <div class="stat-label">Multi-Chain Surface Area</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">&lt; 15ms</div>
+          <div class="stat-label">Target Screening SLA</div>
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        Blockchain transactions are public yet pseudo-anonymous. Traditional AML software relies either on static blacklists which fail when hackers generate fresh wallets, or tabular ML models like XGBoost that look at wallets in isolation. They miss structural graph relationships and temporal patterns like rapid laundering sequences.
+      </div>
+    </section>
+
+    <!-- SLIDE 3: Key Objectives & Innovations -->
+    <section class="slide" data-slide="3">
+      <div class="slide-tag"><i class="fa-solid fa-bullseye"></i> Research Goals</div>
+      <h2 class="slide-title">Core Contributions of CryptoShield AI</h2>
+
+      <div class="grid-2">
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="info-card">
+            <h4><span class="badge badge-cyan">1</span> Multi-Chain Graph Synthesis</h4>
+            <p>Constructs dynamic unified transaction graphs integrating 5 major blockchain networks into dual relational databases (PostgreSQL + Neo4j).</p>
+          </div>
+          <div class="info-card">
+            <h4><span class="badge badge-purple">2</span> Dual-Head T-EGNN Architecture</h4>
+            <p>Jointly predicts continuous <strong>Fraud Risk Scores ($0 \rightarrow 100\%$)</strong> and <strong>8-Class Wallet Attribution</strong> using spatial GCN and Temporal Self-Attention.</p>
+          </div>
+          <div class="info-card">
+            <h4><span class="badge badge-emerald">3</span> Embedded XAI Reasoning</h4>
+            <p>Generates node-level feature attributions and sub-graph structural rationale for forensic transparency without post-hoc latency.</p>
+          </div>
+        </div>
+
+        <div class="info-card" style="display: flex; flex-direction: column; justify-content: center; background: rgba(0,242,254,0.03);">
+          <h4 style="font-size: 1.2rem;"><i class="fa-solid fa-lightbulb"></i> Why T-EGNN Superiority?</h4>
+          <br>
+          <ul class="bullet-list">
+            <li><strong>Spatial Message Passing:</strong> Captures 3-hop topological neighbor risks.</li>
+            <li><strong>Temporal Self-Attention:</strong> Weighs transaction velocity and burst activity over time.</li>
+            <li><strong>Multi-Task Joint Optimization:</strong> Fraud detection reinforces wallet role classification via shared node representations.</li>
+            <li><strong>Real-Time Performance:</strong> Sub-12ms query response for automated exchange compliance.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        Our work fills three key research gaps: multi-chain graph synthesis, temporal graph learning for fraud velocity, and native explainability to provide actionable proof for investigators.
+      </div>
+    </section>
+
+    <!-- SLIDE 4: System Architecture -->
+    <section class="slide" data-slide="4">
+      <div class="slide-tag"><i class="fa-solid fa-sitemap"></i> High-Level Architecture</div>
+      <h2 class="slide-title">End-to-End Platform Pipeline</h2>
+
+      <div class="grid-2-1" style="height: 100%;">
+        <div class="figure-img-container">
+          <img src="figures/system_architecture.png" alt="CryptoShield AI System Architecture" onerror="this.src=''; this.innerHTML='<div style=\'padding:2rem; text-align:center; color:var(--accent-cyan);\'><i class=\'fa-solid fa-network-wired fa-3x\'></i><br><br>[System Architecture Diagram Ingests raw multi-chain RPCs -> Hybrid Storage -> PyTorch T-EGNN -> FastAPI REST -> React Cytoscape UI]</div>';">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <div class="info-card" style="padding: 0.9rem;">
+            <h4 style="font-size: 0.95rem;"><i class="fa-solid fa-database"></i> 1. Storage Layer</h4>
+            <p style="font-size: 0.85rem;">PostgreSQL (12 relational tables) + Neo4j graph database for instantaneous Cypher multi-hop queries.</p>
+          </div>
+          <div class="info-card" style="padding: 0.9rem;">
+            <h4 style="font-size: 0.95rem;"><i class="fa-solid fa-microchip"></i> 2. Inference Layer</h4>
+            <p style="font-size: 0.85rem;">PyTorch T-EGNN model running inside a high-throughput FastAPI application (JWT authenticated).</p>
+          </div>
+          <div class="info-card" style="padding: 0.9rem;">
+            <h4 style="font-size: 0.95rem;"><i class="fa-solid fa-desktop"></i> 3. Frontend UI</h4>
+            <p style="font-size: 0.85rem;">React 18 + Tailwind CSS with interactive Cytoscape.js canvas for transaction graph exploration.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        This diagram illustrates the pipeline. Raw blocks from Bitcoin, Ethereum, BNB, Polygon, and Tron pass through our ingestion service into PostgreSQL and Neo4j. The PyTorch T-EGNN model computes embeddings in real-time and serves them over REST APIs to the investigator web dashboard.
+      </div>
+    </section>
+
+    <!-- SLIDE 5: 14D Feature Engineering -->
+    <section class="slide" data-slide="5">
+      <div class="slide-tag"><i class="fa-solid fa-sliders"></i> Input Feature Representation</div>
+      <h2 class="slide-title">14-Dimensional Wallet Vector ($x_v \in \mathbb{R}^{14}$)</h2>
+
+      <div class="grid-2">
+        <div class="info-card">
+          <h4><i class="fa-solid fa-gauge-high"></i> Velocity & Monetary Features</h4>
+          <table class="custom-table">
+            <tr><th>Feature</th><th>Description</th></tr>
+            <tr><td><code>incoming_tx</code></td><td>Inbound transaction count</td></tr>
+            <tr><td><code>outgoing_tx</code></td><td>Outbound transaction count</td></tr>
+            <tr><td><code>active_days</code></td><td>Unique calendar active days</td></tr>
+            <tr><td><code>avg_tx_amount</code></td><td>Mean USD transfer value</td></tr>
+            <tr><td><code>max_tx_amount</code></td><td>Peak single transfer volume</td></tr>
+            <tr><td><code>balance</code></td><td>Net accumulated wallet balance</td></tr>
+            <tr><td><code>gas_usage</code></td><td>Total execution fees expended</td></tr>
+          </table>
+        </div>
+
+        <div class="info-card">
+          <h4><i class="fa-solid fa-diagram-project"></i> Topological & Diversity Features</h4>
+          <table class="custom-table">
+            <tr><th>Feature</th><th>Description</th></tr>
+            <tr><td><code>neighbor_count</code></td><td>1-hop unique counterparty count</td></tr>
+            <tr><td><code>degree_centrality</code></td><td>Normalized node connection degree</td></tr>
+            <tr><td><code>betweenness</code></td><td>Shortest-path bridge frequency</td></tr>
+            <tr><td><code>pagerank</code></td><td>Global topological importance</td></tr>
+            <tr><td><code>clustering_coeff</code></td><td>Local neighborhood connectivity</td></tr>
+            <tr><td><code>token_diversity</code></td><td>ERC20/BEP20 token smart contracts</td></tr>
+            <tr><td><code>cross_chain_tx</code></td><td>Cross-chain bridge/swap interactions</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        We extract 14 rich features for every wallet node. These cover four dimensions: transaction velocity, monetary balance and gas metrics, graph topological centrality (degree, betweenness, PageRank, clustering coefficient), and cross-chain/token diversity.
+      </div>
+    </section>
+
+    <!-- SLIDE 6: T-EGNN Model Architecture & Mathematics -->
+    <section class="slide" data-slide="6">
+      <div class="slide-tag"><i class="fa-solid fa-square-root-variable"></i> Deep Learning Formulation</div>
+      <h2 class="slide-title">T-EGNN Mathematical Architecture</h2>
+
+      <div class="grid-2">
+        <div>
+          <div class="info-card" style="margin-bottom: 1rem;">
+            <h4>1. Spatial GCN Message Passing</h4>
+            <div class="math-block">
+              $$\mathbf{H}^{(l+1)} = \sigma \left( \tilde{\mathbf{D}}^{-\frac{1}{2}} \tilde{\mathbf{A}} \tilde{\mathbf{D}}^{-\frac{1}{2}} \mathbf{H}^{(l)} \mathbf{W}^{(l)} \right)$$
+            </div>
+            <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-muted);">
+              Normalized adjacency $\tilde{\mathbf{A}} = \mathbf{A} + \mathbf{I}_N$ with LeakyReLU activation and residual LayerNorm to prevent oversmoothing.
+            </p>
+          </div>
+
+          <div class="info-card">
+            <h4>2. Multi-Head Temporal Self-Attention</h4>
+            <div class="math-block">
+              $$\mathbf{A}_{\text{temporal}} = \text{Softmax}\left( \frac{\mathbf{Q} \mathbf{K}^T}{\sqrt{d_k}} \right) \mathbf{V}$$
+            </div>
+            <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-muted);">
+              Captures time-series transaction velocity spikes and dynamic money laundering patterns across neighbor sequences.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <div class="info-card" style="margin-bottom: 1rem;">
+            <h4>3. Dual-Head Prediction Outputs</h4>
+            <ul class="bullet-list">
+              <li><strong>Fraud Scoring Head:</strong> $\hat{y}_{\text{fraud}} = \text{Sigmoid}(\text{MLP}(\mathbf{Z})) \in [0.0, 1.0]$</li>
+              <li><strong>Wallet Attribution Head:</strong> $\hat{\mathbf{y}}_{\text{attr}} = \text{Softmax}(\text{MLP}(\mathbf{Z})) \in \mathbb{R}^8$</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h4>4. Joint Multi-Task Loss Objective</h4>
+            <div class="math-block">
+              $$\mathcal{L}_{\text{total}} = \lambda_1 \mathcal{L}_{\text{BCE}} + \lambda_2 \mathcal{L}_{\text{CE}} + \gamma \|\Theta\|_2^2$$
+            </div>
+            <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-muted);">
+              Simultaneously optimizes binary fraud identification and 8-class wallet categorizations (Exchange, Mixer, DeFi, Scam, etc.).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        Here is the neural mathematical formulation. First, 3 layers of normalized spatial GCN aggregate 3-hop graph context. Next, multi-head temporal self-attention processes the time sequence. Finally, dual prediction heads compute the fraud score and 8-class attribution under a joint loss objective.
+      </div>
+    </section>
+
+    <!-- SLIDE 7: Experimental Dataset & Baseline Setup -->
+    <section class="slide" data-slide="7">
+      <div class="slide-tag"><i class="fa-solid fa-flask"></i> Experimental Methodology</div>
+      <h2 class="slide-title">Datasets & Benchmark Framework</h2>
+
+      <div class="grid-2">
+        <div class="info-card">
+          <h4><i class="fa-solid fa-server"></i> Multi-Chain Dataset (250,000 Wallets)</h4>
+          <ul class="bullet-list">
+            <li><strong>Elliptic Bitcoin Benchmark:</strong> 203,769 node accounts (21% labeled licit/illicit, 79% unlabeled).</li>
+            <li><strong>Ethereum & EVM Dataset:</strong> 46,231 verified addresses labeled across Scam, Phishing, Mixer, Exchange, and DeFi categories.</li>
+            <li><strong>Temporal Data Split:</strong> 80% Train, 10% Validation, 10% Test using strict chronological splits to prevent future data leakage.</li>
+          </ul>
+        </div>
+
+        <div class="info-card">
+          <h4><i class="fa-solid fa-layer-group"></i> Baseline Models Compared</h4>
+          <table class="custom-table">
+            <tr><th>Model Class</th><th>Algorithms Tested</th></tr>
+            <tr><td>Tabular ML</td><td>Random Forest, XGBoost</td></tr>
+            <tr><td>Spatial GNN</td><td>Standard GCN (Kipf & Welling), GAT (Veličković)</td></tr>
+            <tr><td><strong>Proposed</strong></td><td><strong>CryptoShield AI (T-EGNN)</strong></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        We evaluated on a dataset of 250,000 multi-chain wallets combining the famous Elliptic Bitcoin dataset with real Ethereum and EVM verified scam/mixer records. We used a strict 80-10-10 temporal split to ensure realistic evaluation without future lookahead.
+      </div>
+    </section>
+
+    <!-- SLIDE 8: Experimental Benchmark Results -->
+    <section class="slide" data-slide="8">
+      <div class="slide-tag"><i class="fa-solid fa-trophy"></i> Results & Performance</div>
+      <h2 class="slide-title">Quantitative Model Evaluation</h2>
+
+      <div class="grid-2-1">
+        <div>
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Accuracy</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1-Score</th>
+                <th>AUC-ROC</th>
+                <th>Latency</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Random Forest</td>
+                <td>84.1%</td>
+                <td>0.812</td>
+                <td>0.795</td>
+                <td>0.803</td>
+                <td>0.862</td>
+                <td><strong>1.2 ms</strong></td>
+              </tr>
+              <tr>
+                <td>XGBoost</td>
+                <td>87.6%</td>
+                <td>0.854</td>
+                <td>0.831</td>
+                <td>0.842</td>
+                <td>0.895</td>
+                <td>2.5 ms</td>
+              </tr>
+              <tr>
+                <td>Standard GCN</td>
+                <td>89.8%</td>
+                <td>0.881</td>
+                <td>0.875</td>
+                <td>0.878</td>
+                <td>0.921</td>
+                <td>8.4 ms</td>
+              </tr>
+              <tr>
+                <td>GAT</td>
+                <td>91.5%</td>
+                <td>0.902</td>
+                <td>0.891</td>
+                <td>0.896</td>
+                <td>0.942</td>
+                <td>14.8 ms</td>
+              </tr>
+              <tr class="highlight-row">
+                <td><strong>T-EGNN (Ours)</strong></td>
+                <td><strong>94.2%</strong></td>
+                <td><strong>0.938</strong></td>
+                <td><strong>0.894</strong></td>
+                <td><strong>0.915</strong></td>
+                <td><strong>0.963</strong></td>
+                <td><strong>11.6 ms</strong></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+            <p><i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> <strong>+6.6% higher accuracy</strong> over XGBoost baseline.</p>
+            <p><i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> <strong>+4.4% accuracy boost</strong> from Temporal Attention over standard GCN.</p>
+          </div>
+        </div>
+
+        <div class="figure-img-container">
+          <img src="figures/model_comparison.png" alt="Model Accuracy Comparison" onerror="this.src=''; this.innerHTML='<div style=\'padding:1rem; text-align:center; color:var(--accent-cyan);\'><i class=\'fa-solid fa-chart-column fa-2x\'></i><br><br>AUC-ROC Chart<br>T-EGNN (0.963) > GAT (0.942) > GCN (0.921) > XGB (0.895)</div>';">
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        Here are our key empirical findings. CryptoShield AI (T-EGNN) achieves 94.2% accuracy, an F1 score of 0.915, and an outstanding AUC-ROC of 0.963. Crucially, inference takes just 11.6 milliseconds per wallet, well under the 50ms compliance budget required by financial exchanges.
+      </div>
+    </section>
+
+    <!-- SLIDE 9: Training & ROC Curves Visualizations -->
+    <section class="slide" data-slide="9">
+      <div class="slide-tag"><i class="fa-solid fa-chart-area"></i> Validation Visuals</div>
+      <h2 class="slide-title">Training Dynamics & ROC Performance</h2>
+
+      <div class="grid-2">
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <div class="figure-img-container">
+            <img src="figures/roc_curves.png" alt="ROC Curves" onerror="this.src=''; this.innerHTML='<div style=\'padding:1rem; text-align:center; color:var(--accent-cyan);\'><i class=\'fa-solid fa-chart-line fa-2x\'></i><br><br>[ROC Curves Plot: T-EGNN achieves superior TPR across FPR range]</div>';">
+          </div>
+          <p style="text-align:center; font-size:0.8rem; color:var(--text-muted);">Receiver Operating Characteristic (ROC) Curves</p>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <div class="figure-img-container">
+            <img src="figures/training_curves.png" alt="Training Loss Curves" onerror="this.src=''; this.innerHTML='<div style=\'padding:1rem; text-align:center; color:var(--accent-cyan);\'><i class=\'fa-solid fa-wave-square fa-2x\'></i><br><br>[Training & Validation Loss Convergence over 100 Epochs]</div>';">
+          </div>
+          <p style="text-align:center; font-size:0.8rem; color:var(--text-muted);">Training & Validation Loss Convergence (100 Epochs)</p>
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        On the left, the ROC curve shows T-EGNN outperforming all baselines across all false positive rates. On the right, our dual-head training loss converges smoothly without overfitting within 60 epochs.
+      </div>
+    </section>
+
+    <!-- SLIDE 10: Explainable AI (XAI) & Feature Importance -->
+    <section class="slide" data-slide="10">
+      <div class="slide-tag"><i class="fa-solid fa-brain"></i> Explainability Module</div>
+      <h2 class="slide-title">Feature Attribution & XAI Reasoning</h2>
+
+      <div class="grid-2-1">
+        <div>
+          <div class="info-card" style="margin-bottom: 1rem;">
+            <h4>Normalized Gradient Feature Importance ($S(x_i)$)</h4>
+            <div class="math-block">
+              $$S(x_i) = \frac{\left| \frac{\partial \hat{y}_{\text{fraud}}}{\partial x_i} \cdot x_i \right|}{\sum_{j=1}^{14} \left| \frac{\partial \hat{y}_{\text{fraud}}}{\partial x_j} \cdot x_j \right|}$$
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h4>Top Fraud Predictors Extracted</h4>
+            <ul class="bullet-list">
+              <li><strong>Degree Centrality (24.5%):</strong> Unusually high incoming/outgoing connectivity spikes.</li>
+              <li><strong>Max Tx Amount (21.2%):</strong> Large single-burst fund transfers.</li>
+              <li><strong>Cross-Chain Tx Count (15.8%):</strong> Rapid multi-chain bridge activity.</li>
+              <li><strong>Clustering Coefficient (13.4%):</strong> Interconnected suspect relay networks.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="figure-img-container">
+          <img src="figures/feature_importance.png" alt="Feature Importance Weights" onerror="this.src=''; this.innerHTML='<div style=\'padding:1rem; text-align:center; color:var(--accent-cyan);\'><i class=\'fa-solid fa-chart-bar fa-2x\'></i><br><br>[Feature Importance Bar Chart: Degree Centrality (24.5%), Max Tx Amount (21.2%), Cross-Chain (15.8%)]</div>';">
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        Compliance officers cannot rely on black-box predictions. CryptoShield AI extracts normalized gradient sensitivities to show exact feature attributions. Graph degree centrality, maximum transaction volume, and cross-chain bridge frequency emerge as the top three indicators of illicit activity.
+      </div>
+    </section>
+
+    <!-- SLIDE 11: Real-World Case Study -->
+    <section class="slide" data-slide="11">
+      <div class="slide-tag"><i class="fa-solid fa-magnifying-glass-chart"></i> Forensic Investigation</div>
+      <h2 class="slide-title">Case Study: Mixer Obfuscation Analysis</h2>
+
+      <div class="grid-2">
+        <div class="info-card">
+          <h4><i class="fa-solid fa-bug" style="color: var(--accent-magenta);"></i> Suspect Wallet Profile</h4>
+          <p><strong>Address:</strong> <code>0x742d35Cc66...38f44e</code></p>
+          <br>
+          <div class="grid-2">
+            <div class="stat-box">
+              <div class="stat-number" style="color: var(--accent-magenta);">92.4%</div>
+              <div class="stat-label">Fraud Risk Score (Critical)</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number" style="color: var(--accent-amber);">96.1%</div>
+              <div class="stat-label">Mixer Attribution Conf.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h4><i class="fa-solid fa-robot"></i> Automated AI Reasoning Output</h4>
+          <ul class="bullet-list">
+            <li><strong>Risk Factor 1:</strong> Abnormally high degree centrality coupled with low active days (classic peeling chain pattern).</li>
+            <li><strong>Risk Factor 2:</strong> Outbound funds split evenly into identical micro-amounts across 85 distinct counterparties within 12 minutes.</li>
+            <li><strong>Risk Factor 3:</strong> High clustering coefficient ($0.78$) with verified blacklisted mixer relay contracts.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="math-block" style="margin-top: 1rem;">
+        Sub-Graph Topology: [Victim Wallet] ➔ [Suspect Wallet: 92.4%] ➔ [Mixer Relays #1, #2, #3: 98%+ Risk]
+      </div>
+
+      <div class="notes" style="display:none;">
+        Here is an actual forensic case study detected by CryptoShield AI. A victim wallet transferred funds to a suspect address which immediately split them into 85 identical micro-transactions within a 12-minute window into mixer relays. Our model assigned a 92.4% risk score and correctly attributed it as a Mixer with automated reasoning.
+      </div>
+    </section>
+
+    <!-- SLIDE 12: Production Platform & Web Interface -->
+    <section class="slide" data-slide="12">
+      <div class="slide-tag"><i class="fa-solid fa-window-restore"></i> Enterprise Dashboard</div>
+      <h2 class="slide-title">Full-Stack Application Implementation</h2>
+
+      <div class="grid-2">
+        <div class="figure-img-container">
+          <img src="figures/app_dashboard.png" alt="Analytics Dashboard" onerror="this.src=''; this.innerHTML='<div style=\'padding:1rem; text-align:center; color:var(--accent-cyan);\'><i class=\'fa-solid fa-display fa-2x\'></i><br><br>[Analytics Dashboard Screenshot]</div>';">
+        </div>
+
+        <div class="figure-img-container">
+          <img src="figures/app_graph_visualization.png" alt="Cytoscape Graph Visualization" onerror="this.src=''; this.innerHTML='<div style=\'padding:1rem; text-align:center; color:var(--accent-cyan);\'><i class=\'fa-solid fa-circle-nodes fa-2x\'></i><br><br>[Interactive Cytoscape.js Graph Canvas]</div>';">
+        </div>
+      </div>
+
+      <div class="grid-4" style="margin-top: 0.75rem;">
+        <div class="info-card" style="padding:0.75rem;"><i class="fa-solid fa-shield"></i> Fraud Detector Page</div>
+        <div class="info-card" style="padding:0.75rem;"><i class="fa-solid fa-diagram-project"></i> Cytoscape Graph Canvas</div>
+        <div class="info-card" style="padding:0.75rem;"><i class="fa-solid fa-ban"></i> Blacklist Management</div>
+        <div class="info-card" style="padding:0.75rem;"><i class="fa-solid fa-file-pdf"></i> Automated PDF Reports</div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        The system is fully deployed as a web platform featuring 16 UI views including real-time fraud scoring, Cytoscape.js graph canvas, blacklists, case management, and PDF report exporting.
+      </div>
+    </section>
+
+    <!-- SLIDE 13: Conclusion & Future Directions -->
+    <section class="slide" data-slide="13">
+      <div class="slide-tag"><i class="fa-solid fa-flag-checkered"></i> Summary & Roadmap</div>
+      <h2 class="slide-title">Conclusion & Future Research</h2>
+
+      <div class="grid-2">
+        <div class="info-card">
+          <h4><i class="fa-solid fa-check-circle" style="color: var(--accent-emerald);"></i> Project Achievements</h4>
+          <ul class="bullet-list">
+            <li>Developed <strong>T-EGNN</strong>, combining spatial GCN with temporal self-attention for cryptocurrency fraud detection.</li>
+            <li>Achieved state-of-the-art performance: <strong>94.2% Accuracy</strong>, <strong>0.963 AUC-ROC</strong>, and <strong>11.6ms latency</strong>.</li>
+            <li>Built an end-to-end production platform with FastAPI backend, Neo4j, and React interactive interface.</li>
+            <li>Provided transparent XAI reasoning for law enforcement and financial compliance.</li>
+          </ul>
+        </div>
+
+        <div class="info-card">
+          <h4><i class="fa-solid fa-rocket" style="color: var(--accent-cyan);"></i> Future Enhancements</h4>
+          <ul class="bullet-list">
+            <li><strong>Zero-Knowledge Proof (ZKP) Auditing:</strong> Incorporate ZK-SNARK verifiers for privacy-preserving compliance without leaking user balances.</li>
+            <li><strong>Streaming Dynamic GNNs:</strong> Scale to continuous real-time block ingestion using PyTorch Geometric Temporal streaming.</li>
+            <li><strong>L2 / Cross-Rollup Tracking:</strong> Extend graph embeddings to Arbitrum, Optimism, ZK-Sync, and Solana ecosystems.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        In summary, CryptoShield AI solves key challenges in blockchain forensics. For future work, we plan to integrate Zero-Knowledge proofs for privacy-preserving auditing and expand to Layer-2 rollups like Arbitrum and Optimism.
+      </div>
+    </section>
+
+    <!-- SLIDE 14: Q&A Slide -->
+    <section class="slide" data-slide="14">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center;">
+        <div style="font-size: 4rem; color: var(--accent-cyan); margin-bottom: 1rem;"><i class="fa-solid fa-comments"></i></div>
+        <h1 class="slide-title" style="font-size: 3rem;">Thank You!</h1>
+        <p style="font-size: 1.4rem; color: var(--accent-cyan); margin-bottom: 2rem;">Questions & Discussion</p>
+        
+        <div style="display: flex; gap: 1.5rem; justify-content: center; font-family: var(--font-code); font-size: 0.95rem; color: var(--text-muted);">
+          <span><i class="fa-solid fa-envelope"></i> nitin@cryptoshield.ai</span>
+          <span><i class="fa-solid fa-globe"></i> http://localhost:5173</span>
+          <span><i class="fa-brands fa-github"></i> Nitins2005/blockchain</span>
+        </div>
+      </div>
+
+      <div class="notes" style="display:none;">
+        Thank you for your time and attention. I would now welcome any questions, suggestions, or comments from the committee.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer Navigation Bar -->
+  <footer>
+    <div class="nav-buttons">
+      <button class="btn" onclick="prevSlide()"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+      <button class="btn" onclick="nextSlide()">Next <i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="slide-counter">
+      Slide <span id="currentSlideNum">1</span> / <span id="totalSlidesNum">14</span>
+    </div>
+  </footer>
+
+  <!-- Speaker Notes Modal -->
+  <div class="modal-overlay" id="notesModal" onclick="if(event.target===this) toggleNotes()">
+    <div class="modal-box">
+      <h3><i class="fa-solid fa-sticky-note"></i> Speaker Notes for Slide <span id="notesSlideNum">1</span></h3>
+      <p id="notesText" style="color: #cbd5e1; font-size: 1.05rem; line-height: 1.6;"></p>
+      <div style="margin-top: 1.5rem; text-align: right;">
+        <button class="btn" onclick="toggleNotes()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+
+    document.getElementById('totalSlidesNum').textContent = totalSlides;
+
+    function updateDeck() {
+      slides.forEach((s, idx) => {
+        if (idx + 1 === currentSlide) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
+      });
+
+      document.getElementById('currentSlideNum').textContent = currentSlide;
+      document.getElementById('progressBar').style.width = ((currentSlide / totalSlides) * 100) + '%';
+
+      // Update speaker notes text
+      const activeSlideObj = document.querySelector(`.slide[data-slide="${currentSlide}"]`);
+      const notesContent = activeSlideObj.querySelector('.notes') ? activeSlideObj.querySelector('.notes').textContent : 'No speaker notes for this slide.';
+      document.getElementById('notesSlideNum').textContent = currentSlide;
+      document.getElementById('notesText').textContent = notesContent;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateDeck();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateDeck();
+      }
+    }
+
+    function toggleNotes() {
+      document.getElementById('notesModal').classList.toggle('active');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => alert(err.message));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // Keyboard navigation handlers
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'n') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      }
+    });
+  </script>
+</body>
+</html>

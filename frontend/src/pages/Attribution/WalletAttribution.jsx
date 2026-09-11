@@ -56,10 +56,9 @@ export default function WalletAttribution() {
         throw new Error('API not available')
       }
     } catch {
-      setTimeout(() => {
-        setResult({ ...MOCK_RESULT, address })
-        setLoading(false)
-      }, 1000)
+      setResult({ ...MOCK_RESULT, address })
+    } finally {
+      setLoading(false)
     }
   }
 

@@ -48,3 +48,7 @@ app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 @app.get("/")
 async def root():
     return {"message": "Welcome to CryptoShield AI API"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": settings.APP_NAME}

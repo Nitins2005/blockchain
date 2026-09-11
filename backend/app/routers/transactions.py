@@ -1,64 +1,153 @@
-from fastapi import APIRouter, UploadFile, File, Response
+from fastapi import APIRouter, UploadFile, File, Response, Depends
 from typing import Optional
-import random
 from datetime import datetime
-from app.services.mock_data_service import generate_mock_transactions, BLOCKCHAINS, TOKENS
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, desc
+from app.database import get_db
+from app.models.transaction import Transaction
 from app.utils.csv_handler import generate_csv, parse_csv
 
 router = APIRouter()
 
+
 @router.get("")
 async def list_transactions(
-    page: int = 1, page_size: int = 20,
-    blockchain: Optional[str] = None, status: Optional[str] = None,
-    token: Optional[str] = None, search: Optional[str] = None,
-    is_flagged: Optional[bool] = None
+    page: int = 1,
+    page_size: int = 20,
+    blockchain: Optional[str] = None,
+    status: Optional[str] = None,
+    token: Optional[str] = None,
+    search: Optional[str] = None,
+    is_flagged: Optional[bool] = None,
+    db: AsyncSession = Depends(get_db),
 ):
-    data = generate_mock_transactions(count=200, page=page, page_size=page_size)
+    query = select(Transaction)
+    count_query = select(func.count(Transaction.id))
+
     if blockchain:
-        data["items"] = [t for t in data["items"] if t["blockchain"] == blockchain]
+        query = query.where(Transaction.blockchain == blockchain)
+        count_query = count_query.where(Transaction.blockchain == blockchain)
     if status:
-        data["items"] = [t for t in data["items"] if t["status"] == status]
+        query = query.where(Transaction.status == status)
+        count_query = count_query.where(Transaction.status == status)
     if token:
-        data["items"] = [t for t in data["items"] if t["token"] == token]
-    if search:
-        data["items"] = [t for t in data["items"]
-                          if search.lower() in t["tx_hash"].lower()
-                          or search.lower() in t["sender_address"].lower()
-                          or search.lower() in t["receiver_address"].lower()]
+        query = query.where(Transaction.token == token)
+        count_query = count_query.where(Transaction.token == token)
     if is_flagged is not None:
-        data["items"] = [t for t in data["items"] if t["is_flagged"] == is_flagged]
-    return data
+        query = query.where(Transaction.is_flagged == is_flagged)
+        count_query = count_query.where(Transaction.is_flagged == is_flagged)
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.where(
+            Transaction.tx_hash.ilike(search_pattern)
+            | Transaction.sender_address.ilike(search_pattern)
+            | Transaction.receiver_address.ilike(search_pattern)
+        )
+        count_query = count_query.where(
+            Transaction.tx_hash.ilike(search_pattern)
+            | Transaction.sender_address.ilike(search_pattern)
+            | Transaction.receiver_address.ilike(search_pattern)
+        )
+
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    offset = (page - 1) * page_size
+    query = query.order_by(desc(Transaction.timestamp)).offset(offset).limit(page_size)
+    result = await db.execute(query)
+    txs = result.scalars().all()
+
+    items = [
+        {
+            "id": tx.id,
+            "tx_hash": tx.tx_hash,
+            "sender_address": tx.sender_address,
+            "receiver_address": tx.receiver_address,
+            "blockchain": tx.blockchain,
+            "amount": tx.amount,
+            "amount_usd": tx.amount_usd,
+            "gas_fee": tx.gas_fee,
+            "token": tx.token,
+            "block_number": tx.block_number,
+            "timestamp": tx.timestamp.isoformat() if tx.timestamp else None,
+            "status": tx.status,
+            "is_flagged": tx.is_flagged,
+        }
+        for tx in txs
+    ]
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "pages": (total + page_size - 1) // page_size if total > 0 else 0,
+    }
+
 
 @router.get("/export")
-async def export_transactions():
-    data = generate_mock_transactions(count=100, page=1, page_size=100)
-    csv_bytes = generate_csv(data["items"])
+async def export_transactions(
+    blockchain: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(Transaction).order_by(desc(Transaction.timestamp)).limit(1000)
+    if blockchain:
+        query = query.where(Transaction.blockchain == blockchain)
+    result = await db.execute(query)
+    txs = result.scalars().all()
+
+    items = [
+        {
+            "tx_hash": tx.tx_hash,
+            "sender_address": tx.sender_address,
+            "receiver_address": tx.receiver_address,
+            "blockchain": tx.blockchain,
+            "amount": tx.amount,
+            "amount_usd": tx.amount_usd,
+            "gas_fee": tx.gas_fee,
+            "token": tx.token,
+            "block_number": tx.block_number,
+            "timestamp": tx.timestamp.isoformat() if tx.timestamp else None,
+            "status": tx.status,
+            "is_flagged": tx.is_flagged,
+        }
+        for tx in txs
+    ]
+    csv_bytes = generate_csv(items)
     return Response(
         content=csv_bytes,
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=transactions.csv"}
+        headers={"Content-Disposition": "attachment; filename=transactions.csv"},
     )
 
+
 @router.get("/{tx_hash}")
-async def get_transaction(tx_hash: str):
-    blockchain = random.choice(BLOCKCHAINS)
-    amount = round(random.uniform(0.001, 10000), 6)
+async def get_transaction(tx_hash: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Transaction).where(Transaction.tx_hash == tx_hash)
+    )
+    tx = result.scalar_one_or_none()
+    if not tx:
+        return {
+            "tx_hash": tx_hash,
+            "error": "Transaction not found in database. Sync the blockchain first.",
+        }
     return {
-        "id": random.randint(1, 99999),
-        "tx_hash": tx_hash,
-        "sender_address": f"0x{''.join(random.choices('0123456789abcdef', k=40))}",
-        "receiver_address": f"0x{''.join(random.choices('0123456789abcdef', k=40))}",
-        "blockchain": blockchain,
-        "amount": amount,
-        "amount_usd": round(amount * random.uniform(100, 50000), 2),
-        "gas_fee": round(random.uniform(0.00001, 0.01), 8),
-        "token": random.choice(TOKENS),
-        "block_number": random.randint(1000000, 50000000),
-        "timestamp": datetime.utcnow().isoformat(),
-        "status": "confirmed",
-        "is_flagged": random.random() > 0.8
+        "id": tx.id,
+        "tx_hash": tx.tx_hash,
+        "sender_address": tx.sender_address,
+        "receiver_address": tx.receiver_address,
+        "blockchain": tx.blockchain,
+        "amount": tx.amount,
+        "amount_usd": tx.amount_usd,
+        "gas_fee": tx.gas_fee,
+        "token": tx.token,
+        "block_number": tx.block_number,
+        "timestamp": tx.timestamp.isoformat() if tx.timestamp else None,
+        "status": tx.status,
+        "is_flagged": tx.is_flagged,
     }
+
 
 @router.post("/upload")
 async def upload_transactions(file: UploadFile = File(...)):

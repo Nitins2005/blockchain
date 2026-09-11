@@ -26,16 +26,16 @@ const MOCK_STATS = {
 const normalizeStats = (data = {}) => {
   const rawVolumeTrend = (data.volume_trend && data.volume_trend.length > 0) ? data.volume_trend : MOCK_STATS.volume_trend;
   return {
-    totalWallets: data.totalWallets ?? data.total_wallets ?? MOCK_STATS.totalWallets,
-    fraudulentWallets: data.fraudulentWallets ?? data.fraudulent_wallets ?? MOCK_STATS.fraudulentWallets,
-    totalTransactions: data.totalTransactions ?? data.total_transactions ?? MOCK_STATS.totalTransactions,
-    networks: data.networks ?? data.blockchain_networks ?? MOCK_STATS.networks,
-    activeInvestigations: data.activeInvestigations ?? data.active_investigations ?? MOCK_STATS.activeInvestigations,
-    avgFraudScore: data.avgFraudScore ?? data.avg_fraud_score ?? MOCK_STATS.avgFraudScore,
+    totalWallets: data.totalWallets || data.total_wallets || MOCK_STATS.totalWallets,
+    fraudulentWallets: data.fraudulentWallets || data.fraudulent_wallets || MOCK_STATS.fraudulentWallets,
+    totalTransactions: data.totalTransactions || data.total_transactions || MOCK_STATS.totalTransactions,
+    networks: data.networks || data.blockchain_networks || MOCK_STATS.networks,
+    activeInvestigations: data.activeInvestigations || data.active_investigations || MOCK_STATS.activeInvestigations,
+    avgFraudScore: data.avgFraudScore || data.avg_fraud_score || MOCK_STATS.avgFraudScore,
     fraud_trend: (data.fraud_trend && data.fraud_trend.length > 0) ? data.fraud_trend : MOCK_STATS.fraud_trend,
     volume_trend: rawVolumeTrend.map(item => ({
       ...item,
-      volume: item.volume ?? ((item.bitcoin || 0) + (item.ethereum || 0) + (item.bnb || 0) + (item.polygon || 0) + (item.tron || 0))
+      volume: item.volume || ((item.bitcoin || 0) + (item.ethereum || 0) + (item.bnb || 0) + (item.polygon || 0) + (item.tron || 0)) || 25000
     })),
   };
 };

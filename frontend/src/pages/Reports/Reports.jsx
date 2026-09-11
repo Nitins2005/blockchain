@@ -106,7 +106,7 @@ export default function Reports() {
                     <td className="p-4 font-mono text-xs text-white/60">{rep.id}</td>
                     <td className="p-4 font-mono text-sm text-primary-400">{rep.wallet_address ? formatAddress(rep.wallet_address) : 'N/A'}</td>
                     <td className="p-4">
-                      <span className="px-2 py-1 bg-dark-400 rounded-md text-xs text-white/70 capitalize">{rep.type.replace('_', ' ')}</span>
+                      <span className="px-2 py-1 bg-dark-400 rounded-md text-xs text-white/70 capitalize">{(rep.type || '').replace('_', ' ')}</span>
                     </td>
                     <td className="p-4 text-sm text-white/60">{formatDateTime(rep.created_at)}</td>
                     <td className="p-4 text-right">

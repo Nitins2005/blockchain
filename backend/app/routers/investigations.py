@@ -1,17 +1,24 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
-import random
-from datetime import datetime, timedelta
-from app.services.mock_data_service import generate_wallet_address, BLOCKCHAINS
+from datetime import datetime, timezone
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, delete
+from sqlalchemy.orm import selectinload
+from app.database import get_db
+from app.models.investigation import Investigation, InvestigationWallet, InvestigationNote
+from app.middleware.auth import get_current_user
+from app.models.user import User
 
 router = APIRouter()
+
 
 class InvestigationCreate(BaseModel):
     title: str
     description: Optional[str] = None
     priority: str = "medium"
     assigned_to_id: Optional[int] = None
+
 
 class InvestigationUpdate(BaseModel):
     title: Optional[str] = None
@@ -20,162 +27,322 @@ class InvestigationUpdate(BaseModel):
     priority: Optional[str] = None
     assigned_to_id: Optional[int] = None
 
+
 class NoteCreate(BaseModel):
     content: str
+
 
 class WalletAttach(BaseModel):
     wallet_address: str
     blockchain: str
 
-# In-memory store
-_investigations = []
-_notes = {}
-_wallets = {}
-
-def _seed_investigations():
-    if not _investigations:
-        statuses = ["open", "in_progress", "closed"]
-        priorities = ["critical", "high", "medium", "low"]
-        titles = [
-            "Ponzi Scheme Investigation", "Darknet Market Analysis",
-            "Ransomware Payment Tracking", "Mixer Usage Detection",
-            "Exchange Hack Follow-up", "DeFi Protocol Exploit",
-            "NFT Wash Trading", "Cross-chain Bridge Fraud",
-            "Phishing Campaign Wallets", "Money Laundering Ring"
-        ]
-        for i, title in enumerate(titles):
-            inv_id = i + 1
-            _investigations.append({
-                "id": inv_id,
-                "title": title,
-                "description": f"Detailed investigation of {title.lower()}",
-                "status": random.choice(statuses),
-                "priority": random.choice(priorities),
-                "created_by_id": 1,
-                "assigned_to_id": random.randint(1, 5),
-                "created_at": (datetime.utcnow() - timedelta(days=random.randint(1, 90))).isoformat(),
-                "updated_at": datetime.utcnow().isoformat()
-            })
-            blockchain = random.choice(BLOCKCHAINS)
-            _wallets[inv_id] = [
-                {"id": j+1, "investigation_id": inv_id,
-                 "wallet_address": generate_wallet_address(blockchain),
-                 "blockchain": blockchain,
-                 "added_at": datetime.utcnow().isoformat()}
-                for j in range(random.randint(1, 5))
-            ]
-            _notes[inv_id] = [
-                {"id": j+1, "investigation_id": inv_id,
-                 "content": random.choice([
-                     "Initial analysis shows suspicious patterns.",
-                     "Cross-chain movement detected. Expanding scope.",
-                     "Blacklisted wallet found in transaction graph.",
-                     "Coordinating with exchange for KYC data."
-                 ]),
-                 "author_id": 1,
-                 "created_at": (datetime.utcnow() - timedelta(hours=random.randint(1, 72))).isoformat()}
-                for j in range(random.randint(1, 4))
-            ]
-
-_seed_investigations()
 
 @router.get("")
 async def list_investigations(
-    page: int = 1, page_size: int = 20,
-    status: Optional[str] = None, priority: Optional[str] = None
+    page: int = 1,
+    page_size: int = 20,
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    items = _investigations.copy()
+    query = select(Investigation)
     if status:
-        items = [i for i in items if i["status"] == status]
+        query = query.where(Investigation.status == status)
     if priority:
-        items = [i for i in items if i["priority"] == priority]
-    total = len(items)
-    start = (page - 1) * page_size
-    page_items = items[start:start + page_size]
-    for item in page_items:
-        item["wallet_count"] = len(_wallets.get(item["id"], []))
-    return {"items": page_items, "total": total, "page": page, "page_size": page_size}
+        query = query.where(Investigation.priority == priority)
+    query = query.order_by(Investigation.created_at.desc())
+
+    from sqlalchemy import func
+
+    count_query = select(func.count()).select_from(Investigation)
+    if status:
+        count_query = count_query.where(Investigation.status == status)
+    if priority:
+        count_query = count_query.where(Investigation.priority == priority)
+    total_result = await db.execute(count_query)
+    total = total_result.scalar()
+
+    query = query.offset((page - 1) * page_size).limit(page_size)
+    result = await db.execute(query)
+    items = result.scalars().all()
+
+    enriched = []
+    for inv in items:
+        wallet_count_result = await db.execute(
+            select(func.count())
+            .select_from(InvestigationWallet)
+            .where(InvestigationWallet.investigation_id == inv.id)
+        )
+        wallet_count = wallet_count_result.scalar()
+        enriched.append({
+            "id": inv.id,
+            "title": inv.title,
+            "description": inv.description,
+            "status": inv.status.value if inv.status else "open",
+            "priority": inv.priority,
+            "created_by_id": inv.created_by_id,
+            "assigned_to_id": inv.assigned_to_id,
+            "created_at": inv.created_at.isoformat() if inv.created_at else None,
+            "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
+            "wallet_count": wallet_count,
+        })
+
+    return {"items": enriched, "total": total, "page": page, "page_size": page_size}
+
 
 @router.get("/{inv_id}")
-async def get_investigation(inv_id: int):
-    for item in _investigations:
-        if item["id"] == inv_id:
-            item["wallet_count"] = len(_wallets.get(inv_id, []))
-            return item
-    raise HTTPException(status_code=404, detail="Investigation not found")
+async def get_investigation(
+    inv_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Investigation).where(Investigation.id == inv_id))
+    inv = result.scalar_one_or_none()
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    wallet_count_result = await db.execute(
+        select(func.count())
+        .select_from(InvestigationWallet)
+        .where(InvestigationWallet.investigation_id == inv.id)
+    )
+    wallet_count = wallet_count_result.scalar()
+
+    return {
+        "id": inv.id,
+        "title": inv.title,
+        "description": inv.description,
+        "status": inv.status.value if inv.status else "open",
+        "priority": inv.priority,
+        "created_by_id": inv.created_by_id,
+        "assigned_to_id": inv.assigned_to_id,
+        "created_at": inv.created_at.isoformat() if inv.created_at else None,
+        "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
+        "wallet_count": wallet_count,
+    }
+
 
 @router.post("")
-async def create_investigation(data: InvestigationCreate):
-    new_id = max((i["id"] for i in _investigations), default=0) + 1
-    inv = {
-        "id": new_id, "title": data.title, "description": data.description,
-        "status": "open", "priority": data.priority,
-        "created_by_id": 1, "assigned_to_id": data.assigned_to_id,
-        "created_at": datetime.utcnow().isoformat(), "updated_at": datetime.utcnow().isoformat()
+async def create_investigation(
+    data: InvestigationCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    inv = Investigation(
+        title=data.title,
+        description=data.description,
+        priority=data.priority,
+        created_by_id=current_user.id,
+        assigned_to_id=data.assigned_to_id,
+    )
+    db.add(inv)
+    await db.commit()
+    await db.refresh(inv)
+    return {
+        "id": inv.id,
+        "title": inv.title,
+        "description": inv.description,
+        "status": inv.status.value if inv.status else "open",
+        "priority": inv.priority,
+        "created_by_id": inv.created_by_id,
+        "assigned_to_id": inv.assigned_to_id,
+        "created_at": inv.created_at.isoformat() if inv.created_at else None,
+        "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
     }
-    _investigations.append(inv)
-    _wallets[new_id] = []
-    _notes[new_id] = []
-    return inv
+
 
 @router.put("/{inv_id}")
-async def update_investigation(inv_id: int, data: InvestigationUpdate):
-    for item in _investigations:
-        if item["id"] == inv_id:
-            if data.title is not None: item["title"] = data.title
-            if data.description is not None: item["description"] = data.description
-            if data.status is not None: item["status"] = data.status
-            if data.priority is not None: item["priority"] = data.priority
-            if data.assigned_to_id is not None: item["assigned_to_id"] = data.assigned_to_id
-            item["updated_at"] = datetime.utcnow().isoformat()
-            return item
-    raise HTTPException(status_code=404, detail="Investigation not found")
+async def update_investigation(
+    inv_id: int,
+    data: InvestigationUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Investigation).where(Investigation.id == inv_id))
+    inv = result.scalar_one_or_none()
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    if data.title is not None:
+        inv.title = data.title
+    if data.description is not None:
+        inv.description = data.description
+    if data.status is not None:
+        inv.status = data.status
+    if data.priority is not None:
+        inv.priority = data.priority
+    if data.assigned_to_id is not None:
+        inv.assigned_to_id = data.assigned_to_id
+
+    await db.commit()
+    await db.refresh(inv)
+    return {
+        "id": inv.id,
+        "title": inv.title,
+        "description": inv.description,
+        "status": inv.status.value if inv.status else "open",
+        "priority": inv.priority,
+        "created_by_id": inv.created_by_id,
+        "assigned_to_id": inv.assigned_to_id,
+        "created_at": inv.created_at.isoformat() if inv.created_at else None,
+        "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
+    }
+
 
 @router.delete("/{inv_id}")
-async def delete_investigation(inv_id: int):
-    global _investigations
-    _investigations = [i for i in _investigations if i["id"] != inv_id]
-    _wallets.pop(inv_id, None)
-    _notes.pop(inv_id, None)
+async def delete_investigation(
+    inv_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Investigation).where(Investigation.id == inv_id))
+    inv = result.scalar_one_or_none()
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    await db.execute(delete(InvestigationNote).where(InvestigationNote.investigation_id == inv_id))
+    await db.execute(delete(InvestigationWallet).where(InvestigationWallet.investigation_id == inv_id))
+    await db.delete(inv)
+    await db.commit()
     return {"message": "Investigation deleted"}
 
+
 @router.get("/{inv_id}/wallets")
-async def get_investigation_wallets(inv_id: int):
-    return _wallets.get(inv_id, [])
+async def get_investigation_wallets(
+    inv_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(InvestigationWallet).where(InvestigationWallet.investigation_id == inv_id)
+    )
+    wallets = result.scalars().all()
+    return [
+        {
+            "id": w.id,
+            "investigation_id": w.investigation_id,
+            "wallet_address": w.wallet_address,
+            "blockchain": w.blockchain,
+            "added_at": w.added_at.isoformat() if w.added_at else None,
+        }
+        for w in wallets
+    ]
+
 
 @router.post("/{inv_id}/wallets")
-async def attach_wallet(inv_id: int, data: WalletAttach):
-    if inv_id not in _wallets:
-        _wallets[inv_id] = []
-    new_id = len(_wallets[inv_id]) + 1
-    entry = {"id": new_id, "investigation_id": inv_id,
-              "wallet_address": data.wallet_address, "blockchain": data.blockchain,
-              "added_at": datetime.utcnow().isoformat()}
-    _wallets[inv_id].append(entry)
-    return entry
+async def attach_wallet(
+    inv_id: int,
+    data: WalletAttach,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Investigation).where(Investigation.id == inv_id))
+    inv = result.scalar_one_or_none()
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    wallet = InvestigationWallet(
+        investigation_id=inv_id,
+        wallet_address=data.wallet_address,
+        blockchain=data.blockchain,
+    )
+    db.add(wallet)
+    await db.commit()
+    await db.refresh(wallet)
+    return {
+        "id": wallet.id,
+        "investigation_id": wallet.investigation_id,
+        "wallet_address": wallet.wallet_address,
+        "blockchain": wallet.blockchain,
+        "added_at": wallet.added_at.isoformat() if wallet.added_at else None,
+    }
+
 
 @router.delete("/{inv_id}/wallets/{wallet_address}")
-async def remove_wallet(inv_id: int, wallet_address: str):
-    if inv_id in _wallets:
-        _wallets[inv_id] = [w for w in _wallets[inv_id] if w["wallet_address"] != wallet_address]
+async def remove_wallet(
+    inv_id: int,
+    wallet_address: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await db.execute(
+        delete(InvestigationWallet).where(
+            InvestigationWallet.investigation_id == inv_id,
+            InvestigationWallet.wallet_address == wallet_address,
+        )
+    )
+    await db.commit()
     return {"message": "Wallet removed"}
 
+
 @router.get("/{inv_id}/notes")
-async def get_notes(inv_id: int):
-    return _notes.get(inv_id, [])
+async def get_notes(
+    inv_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(InvestigationNote)
+        .where(InvestigationNote.investigation_id == inv_id)
+        .order_by(InvestigationNote.created_at.desc())
+    )
+    notes = result.scalars().all()
+    return [
+        {
+            "id": n.id,
+            "investigation_id": n.investigation_id,
+            "content": n.content,
+            "author_id": n.author_id,
+            "created_at": n.created_at.isoformat() if n.created_at else None,
+        }
+        for n in notes
+    ]
+
 
 @router.post("/{inv_id}/notes")
-async def add_note(inv_id: int, data: NoteCreate):
-    if inv_id not in _notes:
-        _notes[inv_id] = []
-    new_id = len(_notes[inv_id]) + 1
-    note = {"id": new_id, "investigation_id": inv_id,
-             "content": data.content, "author_id": 1,
-             "created_at": datetime.utcnow().isoformat()}
-    _notes[inv_id].append(note)
-    return note
+async def add_note(
+    inv_id: int,
+    data: NoteCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Investigation).where(Investigation.id == inv_id))
+    inv = result.scalar_one_or_none()
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    note = InvestigationNote(
+        investigation_id=inv_id,
+        content=data.content,
+        author_id=current_user.id,
+    )
+    db.add(note)
+    await db.commit()
+    await db.refresh(note)
+    return {
+        "id": note.id,
+        "investigation_id": note.investigation_id,
+        "content": note.content,
+        "author_id": note.author_id,
+        "created_at": note.created_at.isoformat() if note.created_at else None,
+    }
+
 
 @router.post("/{inv_id}/generate-report")
-async def generate_report(inv_id: int):
-    return {"message": "Report generation started", "investigation_id": inv_id,
-            "report_id": random.randint(100, 999), "eta_seconds": 5}
+async def generate_report(
+    inv_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Investigation).where(Investigation.id == inv_id))
+    inv = result.scalar_one_or_none()
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    return {
+        "message": "Report generation started",
+        "investigation_id": inv_id,
+        "report_id": inv_id,
+        "eta_seconds": 5,
+    }

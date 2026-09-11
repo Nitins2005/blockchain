@@ -60,7 +60,7 @@ export const walletsAPI = {
 
 export const graphAPI = {
   getStats: () => api.get('/graph/stats'),
-  getWalletGraph: (address) => api.get(`/graph/wallet/${address}`),
+  getWalletGraph: (address) => api.get(`/graph/${address}`),
   query: (data) => api.post('/graph/query', data),
   getCentralWallets: () => api.get('/graph/central-wallets'),
 }

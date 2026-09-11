@@ -38,17 +38,24 @@ export default function FraudDetection() {
     
     setLoading(true)
     try {
-      if (aiAPI && aiAPI.predictFraud) {
-        const res = await aiAPI.predictFraud(address)
-        setResult(res.data)
-      } else {
-        throw new Error('API not available')
-      }
+      const res = await aiAPI.predictWallet({ wallet_address: address, blockchain: 'ethereum' })
+      const d = res.data
+      setResult({
+        address: d.wallet_address || address,
+        score: d.fraud_score ?? 0,
+        risk_level: d.risk_level || 'low',
+        confidence: d.confidence ?? 0,
+        last_activity: d.last_activity || d.prediction_time,
+        tx_count: d.tx_count ?? 0,
+        connected_wallets: d.connected_wallets ?? 0,
+        cross_chain_ratio: d.cross_chain_activity ? 1 : 0,
+        prediction_time: d.prediction_time || new Date().toISOString(),
+        model_version: d.model_version || 'unknown',
+      })
     } catch {
-      setTimeout(() => {
-        setResult({ ...MOCK_RESULT, address })
-        setLoading(false)
-      }, 1500)
+      setResult({ ...MOCK_RESULT, address })
+    } finally {
+      setLoading(false)
     }
   }
 
